@@ -1,0 +1,2 @@
+run:
+  web: nodemon ./src/index.js
