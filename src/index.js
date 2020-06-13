@@ -5,6 +5,10 @@ require('dotenv').config();
 const { pool } = require('./config');
 
 const server = new ApolloServer({
+  cors: {
+		origin: '*',			// <- allow request from all domains
+    credentials: true
+  },
   typeDefs,
   resolvers,
   engine: { apiKey: process.env.ENGINE_API_KEY },

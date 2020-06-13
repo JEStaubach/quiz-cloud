@@ -1,9 +1,18 @@
-const getSubjects = async (context) => {
-  const subjects = await context.pool.query('SELECT * FROM "Subjects" ORDER BY subject_id');
+const getSubjects = async (context, args = {}) => {
+  if (args.id) {
+    const subject = await getSubject(context, args);
+    return [subject];
+  }
+  const subjects = await context.pool.query(`SELECT * FROM "Subjects" ORDER BY subject_id`);
   return subjects.rows.map((subject) => ({
     id: subject.subject_id,
     name: subject.subject_name,
   }));
+};
+
+const getSubject = async (context, args) => {
+  const subjects = await getSubjects(context);
+  return subjects.filter(subject => subject.id == args.id)[0];
 };
 
 const getDomains = async (context, { subject_id }) => {
@@ -70,7 +79,8 @@ const getParameters = async (context, { question_id }) => {
 // schema.
 module.exports.resolvers = {
   Query: {
-    subjects: async (__, _, context) => await getSubjects(context),
+    subjects: async (__, args, context) => await getSubjects(context, args),
+    subject: async (__, args, context) => await getSubject(context, args),
   },
   Subject: {
     domains: async (parent, _, context) => await getDomains(context, { subject_id: parent.id }),
