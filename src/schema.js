@@ -52,5 +52,8 @@ module.exports.typeDefs = gql`
   type Query {
     subjects(id: Int): [Subject]
     subject(id: Int!): Subject
+    domains(id: Int): [Domain]
+    questions(subject_id: Int, domain_id: Int): [Question]
+    question(subject_id: Int, domain_id: Int, question_id: Int): Question
   }
 `;

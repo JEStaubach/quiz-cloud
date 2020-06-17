@@ -25,16 +25,29 @@ const getDomains = async (context, { subject_id }) => {
   }));
 };
 
-const getQuestions = async (context, { domain_id }) => {
-  const questions = await context.pool.query(
-    `SELECT * FROM "Questions" WHERE domain_id=${domain_id} ORDER BY question_id`,
-  );
+const getQuestions = async (context, { subject_id, domain_id }) => {
+  const query = domain_id
+    ? `SELECT * FROM "Questions" WHERE domain_id=${domain_id} ORDER BY question_id`
+    : `SELECT * FROM "Domains", "Questions" WHERE "Domains".subject_id=${subject_id} AND "Domains".domain_id="Questions".domain_id ORDER BY question_id`;
+  const questions = await context.pool.query(query);
   return questions.rows.map((question) => ({
     id: question.question_id,
     text: question.question_text,
     parameters: { q_id: question.question_id },
   }));
 };
+
+const getQuestion = async (context, { question_id }) => {
+  const questions = await context.pool.query(
+    `SELECT * FROM "Questions" WHERE question_id=${question_id}`,
+  );
+  const question = questions.rows[0];
+  return {
+    id: question.question_id,
+    text: question.question_text,
+    parameters: { q_id: question.question_id },
+  };
+}
 
 const getOptions = async (context, { question_id }) => {
   const choices = await context.pool.query(
@@ -81,6 +94,9 @@ module.exports.resolvers = {
   Query: {
     subjects: async (__, args, context) => await getSubjects(context, args),
     subject: async (__, args, context) => await getSubject(context, args),
+    domains: async (__, args, context) => await getDomains(context, { subject_id: args.id }),
+    questions: async (__, args, context) => await getQuestions(context, { subject_id: args.subject_id, domain_id: args.domain_id }),
+    question: async (__, args, context) => await getQuestion(context, { subject_id: args.subject_id, domain_id: args.domain_id, question_id: args.question_id}),
   },
   Subject: {
     domains: async (parent, _, context) => await getDomains(context, { subject_id: parent.id }),
